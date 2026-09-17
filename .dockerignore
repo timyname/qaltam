@@ -1,0 +1,17 @@
+.venv/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.git/
+.gitignore
+.env
+frontend/node_modules/
+frontend/dist/
+storage/db/*.db
+storage/imports/*
+!storage/imports/.gitkeep
+outputs/
+work/
+

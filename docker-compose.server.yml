@@ -1,0 +1,8 @@
+services:
+  qaltam-backend:
+    ports: !override
+      - "18080:8000"
+
+  qaltam-frontend:
+    ports: !override
+      - "18073:5173"

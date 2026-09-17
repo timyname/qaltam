@@ -1,0 +1,65 @@
+services:
+  qaltam-backend:
+    build:
+      context: .
+      dockerfile: infra/backend.Dockerfile
+    container_name: qaltam-backend
+    env_file:
+      - .env
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      HOST: 0.0.0.0
+      PORT: "8000"
+      DATABASE_URL: sqlite+aiosqlite:////data/db/qaltam_v2.db
+      LOCAL_STORAGE_PATH: /data
+    volumes:
+      - ./storage:/data
+    command: ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health').read()",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+  qaltam-bot:
+    build:
+      context: .
+      dockerfile: infra/backend.Dockerfile
+    container_name: qaltam-bot
+    env_file:
+      - .env
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DATABASE_URL: sqlite+aiosqlite:////data/db/qaltam_v2.db
+      LOCAL_STORAGE_PATH: /data
+    volumes:
+      - ./storage:/data
+    command: ["python", "bot.py"]
+    depends_on:
+      qaltam-backend:
+        condition: service_healthy
+    restart: unless-stopped
+  qaltam-frontend:
+    build:
+      context: .
+      dockerfile: infra/frontend.Dockerfile
+      args:
+        VITE_APP_BASE_PATH: ${VITE_APP_BASE_PATH:-/}
+    container_name: qaltam-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      qaltam-backend:
+        condition: service_healthy
+    restart: unless-stopped
